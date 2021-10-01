@@ -23,9 +23,12 @@ env:
 # @default -- See values.yaml
 service:
   main:
+    type: NodePort
     ports:
       http:
+        enabled: true
         port: 8096
+        nodePort: 31001
 
 ingress:
   # -- Enable and configure ingress settings for the chart under this key.
@@ -37,31 +40,44 @@ ingress:
 # @default -- See values.yaml
 persistence:
   config:
-    enabled: false
+    enabled: true
+    mountPath: /config
+    type: hostPath
+    accessMode: ReadWriteOnce
+    size: 1Gi
+    hostPath: /export/containers/jellyfin-config
 
   # Cache does NOT contain temporary transcoding data.
   cache:
-    enabled: false
+    enabled: true
     mountPath: /cache
+    type: hostPath
+    accessMode: ReadWriteOnce
+    size: 10Gi
+    hostPath: /export/containers/jellyfin-cache
 
   media:
-    enabled: false
+    enabled: true
     mountPath: /media
+    type: hostPath
+    accessMode: ReadWriteOnce
+    size: 1000Gi
+    hostPath: /export/media
 
 # -- Configure the Security Context for the Pod
-podSecurityContext: {}
-#   runAsUser: 568
-#   runAsGroup: 568
-#   fsGroup: 568
+podSecurityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
 #   # Hardware acceleration using an Intel iGPU w/ QuickSync
 #   # These IDs below should be matched to your `video` and `render` group on the host
 #   # To obtain those IDs run the following grep statement on the host:
 #   # $ cat /etc/group | grep "video\|render"
 #   # video:x:44:
 #   # render:x:109:
-#   supplementalGroups:
-#   - 44
-#   - 109
+  supplementalGroups:
+  - 985
+  - 989
 
 # resources:
 #   requests:
