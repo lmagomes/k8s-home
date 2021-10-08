@@ -8,20 +8,20 @@
 # -- Use an initContainer to download the Flood web ui
 # Set UI with env `TRANSMISSION_WEB_HOME` set to `/config/flood-for-transmission/`
 # @default -- See values.yaml
-initContainers: {}
-  # custom-webui:
-  #   name: custom-webui
-  #   image: curlimages/curl:7.76.1
-  #   command:
-  #   - "/bin/sh"
-  #   - "-c"
-  #   - "curl -o- -sL https://github.com/johman10/flood-for-transmission/releases/download/latest/flood-for-transmission.tar.gz | tar xzf - -C /config"
-  #   volumeMounts:
-  #   - name: config
-  #     mountPath: /config
-  #   securityContext:
-  #     runAsUser: 568
-  #     runAsGroup: 568
+initContainers:
+  custom-webui:
+    name: custom-webui
+    image: curlimages/curl:7.76.1
+    command:
+    - "/bin/sh"
+    - "-c"
+    - "curl -o- -sL https://github.com/johman10/flood-for-transmission/releases/download/latest/flood-for-transmission.tar.gz | tar xzf - -C /config"
+    volumeMounts:
+    - name: config
+      mountPath: /config
+    securityContext:
+      runAsUser: 1000
+      runAsGroup: 1000
 
 image:
   # -- image repository
@@ -37,13 +37,13 @@ env:
   # -- Set the container timezone
   TZ: UTC
   # -- Path in container where the Web UI is located
-  TRANSMISSION_WEB_HOME: /web
+  TRANSMISSION_WEB_HOME: /config/flood-for-transmission
   # -- Password to access the Web UI
   TRANSMISSION_RPC_PASSWORD: CHANGEME
   # -- Torrent download directory
   TRANSMISSION_DOWNLOAD_DIR: /downloads/complete
   # -- Enable incomplete download directory
-  TRANSMISSION_INCOMPLETE_DIR_ENABLED: false
+  TRANSMISSION_INCOMPLETE_DIR_ENABLED: true
   # -- Incomplete download directory
   TRANSMISSION_INCOMPLETE_DIR: /downloads/incomplete
   # -- Enable watch directory
@@ -55,9 +55,12 @@ env:
 # @default -- See values.yaml
 service:
   main:
+    type: NodePort
     ports:
       http:
+        enabled: true
         port: 9091
+        nodePort: 31010
   utptcp:
     enabled: false
     type: ClusterIP
@@ -99,14 +102,26 @@ ingress:
 # @default -- See values.yaml
 persistence:
   config:
-    enabled: false
+    enabled: true
     mountPath: /config
+    type: hostPath
+    accessMode: ReadWriteOnce
+    size: 1Gi
+    hostPath: /export/containers/transmission/config
 
   downloads:
-    enabled: false
+    enabled: true
     mountPath: /downloads
+    type: hostPath
+    accessMode: ReadWriteOnce
+    size: 100Gi
+    hostPath: /export/downloads
 
   watch:
     enabled: false
     mountPath: /watch
 
+podSecurityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
