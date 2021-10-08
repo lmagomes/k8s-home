@@ -9,7 +9,7 @@ image:
   # -- image repository
   repository: jellyfin/jellyfin
   # -- image tag
-  tag: 10.7.5
+  tag: 10.7.6
   # -- image pull policy
   pullPolicy: IfNotPresent
 
@@ -45,7 +45,7 @@ persistence:
     type: hostPath
     accessMode: ReadWriteOnce
     size: 1Gi
-    hostPath: /export/containers/jellyfin-config
+    hostPath: /export/containers/jellyfin/config
 
   # Cache does NOT contain temporary transcoding data.
   cache:
@@ -54,7 +54,7 @@ persistence:
     type: hostPath
     accessMode: ReadWriteOnce
     size: 10Gi
-    hostPath: /export/containers/jellyfin-cache
+    hostPath: /export/containers/jellyfin/cache
 
   media:
     enabled: true
