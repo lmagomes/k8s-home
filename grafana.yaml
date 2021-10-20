@@ -89,9 +89,9 @@ testFramework:
   securityContext: {}
 
 securityContext:
-  runAsUser: 472
-  runAsGroup: 472
-  fsGroup: 472
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
 
 containerSecurityContext:
   {}
@@ -143,9 +143,10 @@ podPortName: grafana
 ##
 service:
   enabled: true
-  type: ClusterIP
+  type: NodePort
   port: 80
   targetPort: 3000
+  nodePort: 31030
     # targetPort: 4181 To be used with a proxy extraContainer
   annotations: {}
   labels: {}
@@ -326,9 +327,9 @@ adminUser: admin
 
 # Use an existing secret for the admin user.
 admin:
-  existingSecret: ""
-  userKey: admin-user
-  passwordKey: admin-password
+  existingSecret: "grafana-auth"
+  userKey: username
+  passwordKey: password
 
 ## Define command to be executed at startup by grafana container
 ## Needed if using `vault-env` to manage secrets (ref: https://banzaicloud.com/blog/inject-secrets-into-pods-vault/)
@@ -448,15 +449,15 @@ plugins: []
 ## Configure grafana datasources
 ## ref: http://docs.grafana.org/administration/provisioning/#datasources
 ##
-datasources: {}
-#  datasources.yaml:
-#    apiVersion: 1
-#    datasources:
-#    - name: Prometheus
-#      type: prometheus
-#      url: http://prometheus-prometheus-server
-#      access: proxy
-#      isDefault: true
+datasources:
+ datasources.yaml:
+   apiVersion: 1
+   datasources:
+   - name: Prometheus
+     type: prometheus
+     url: http://prometheus-server
+     access: proxy
+     isDefault: true
 #    - name: CloudWatch
 #      type: cloudwatch
 #      access: proxy
@@ -489,18 +490,18 @@ notifiers: {}
 ##
 ## `path` must be /var/lib/grafana/dashboards/<provider_name>
 ##
-dashboardProviders: {}
-#  dashboardproviders.yaml:
-#    apiVersion: 1
-#    providers:
-#    - name: 'default'
-#      orgId: 1
-#      folder: ''
-#      type: file
-#      disableDeletion: false
-#      editable: true
-#      options:
-#        path: /var/lib/grafana/dashboards/default
+dashboardProviders:
+ dashboardproviders.yaml:
+   apiVersion: 1
+   providers:
+   - name: 'default'
+     orgId: 1
+     folder: ''
+     type: file
+     disableDeletion: false
+     editable: true
+     options:
+       path: /var/lib/grafana/dashboards/default
 
 ## Configure grafana dashboard to import
 ## NOTE: To use dashboards you must also enable/configure dashboardProviders
@@ -508,7 +509,12 @@ dashboardProviders: {}
 ##
 ## dashboards per provider, use provider name as key.
 ##
-dashboards: {}
+dashboards:
+  default:
+    node-exporter:
+      gnetId: 1860
+      revision: 23
+      datasource: Prometheus
   # default:
   #   some-dashboard:
   #     json: |
